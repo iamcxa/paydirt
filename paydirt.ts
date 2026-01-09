@@ -19,6 +19,7 @@
 import { parseArgs } from '@std/cli/parse-args';
 import {
   abandonCommand,
+  bossCommand,
   continueCommand,
   prospectCommand,
   stakeCommand,
@@ -126,6 +127,19 @@ async function main(): Promise<void> {
     case 'boomtown':
       await launchBoomtown();
       break;
+    case 'boss': {
+      const subcommand = args._[1] as string;
+      if (!subcommand || !['start', 'stop', 'status'].includes(subcommand)) {
+        console.error('Error: boss subcommand required');
+        console.error('Usage: paydirt boss <start|stop|status>');
+        Deno.exit(1);
+      }
+      await bossCommand({
+        subcommand: subcommand as 'start' | 'stop' | 'status',
+        dryRun: args['dry-run'],
+      });
+      break;
+    }
     case 'ledger':
       console.log('[TODO] View history');
       break;
