@@ -131,21 +131,17 @@ Deno.test('Caravan pane script includes correct session name', () => {
   assertStringIncludes(script, 'CARAVAN_ID="pd-abc123"');
 });
 
-Deno.test('Caravan pane script includes status indicator', () => {
-  // Test running status
-  const runningScript = generateCaravanScriptContent(
+Deno.test('Caravan pane script includes start functionality', () => {
+  // Test that script includes start functionality
+  const script = generateCaravanScriptContent(
     'pd-001',
-    'Running',
+    'Test Caravan',
     'running',
     '/bin/paydirt',
   );
-  assertStringIncludes(runningScript, '▶');
-  assertStringIncludes(runningScript, 'RUNNING');
-
-  // Test idle status
-  const idleScript = generateCaravanScriptContent('pd-002', 'Idle', 'idle', '/bin/paydirt');
-  assertStringIncludes(idleScript, '◇');
-  assertStringIncludes(idleScript, 'IDLE');
+  assertStringIncludes(script, 'START');
+  assertStringIncludes(script, 'start_caravan');
+  assertStringIncludes(script, 'PAYDIRT_BIN');
 });
 
 Deno.test('Caravan pane script includes tmux attach logic', () => {
