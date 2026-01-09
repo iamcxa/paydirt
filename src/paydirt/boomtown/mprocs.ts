@@ -130,12 +130,29 @@ print_controls_panel() {
   echo -e "\${RESET}"
 }
 
+print_new_caravan_alert() {
+  if [ -f /tmp/paydirt-new-caravans ]; then
+    local new_caravans=\$(cat /tmp/paydirt-new-caravans 2>/dev/null | tail -3)
+    if [ -n "\$new_caravans" ]; then
+      echo ""
+      echo -e "\${AMBER} ╔══════════════════════════════════════════════════════════════════════╗"
+      echo -e " ║  ⚠ NEW CARAVAN(S) DETECTED - Press [q] then relaunch to see         ║"
+      echo -e " ╠══════════════════════════════════════════════════════════════════════╣"
+      while IFS= read -r line; do
+        printf " ║  %-66s  ║\\n" "\$line"
+      done <<< "\$new_caravans"
+      echo -e " ╚══════════════════════════════════════════════════════════════════════╝\${FG}"
+    fi
+  fi
+}
+
 # Main loop - updates every 2 seconds
 while true; do
   set_background
   print_header
   print_system_panel
   print_caravan_stats
+  print_new_caravan_alert
   print_controls_panel
   FRAME=\$(( (FRAME + 1) % 4 ))
   sleep 2

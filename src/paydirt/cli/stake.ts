@@ -60,6 +60,21 @@ async function attachSession(sessionName: string): Promise<void> {
   await cmd.output();
 }
 
+/**
+ * Notify Boomtown dashboard of a new caravan.
+ * Writes to a notification file that the Control Room status script checks.
+ */
+async function notifyNewCaravan(claimId: string, task: string): Promise<void> {
+  const notification = `${claimId}: ${task.substring(0, 50)}`;
+  const file = '/tmp/paydirt-new-caravans';
+
+  try {
+    await Deno.writeTextFile(file, notification + '\n', { append: true });
+  } catch {
+    // Ignore write errors
+  }
+}
+
 export async function stakeCommand(options: StakeOptions): Promise<void> {
   const { task, primeMode: _primeMode, tunnelPath, dryRun } = options;
 
@@ -108,6 +123,9 @@ export async function stakeCommand(options: StakeOptions): Promise<void> {
     console.error('✗ Failed to create tmux session');
     Deno.exit(1);
   }
+
+  // Notify Boomtown dashboard
+  await notifyNewCaravan(claimId, task);
 
   console.log(`✓ Caravan started: ${claimId}`);
   console.log(`\n▶ Attaching to session...`);
