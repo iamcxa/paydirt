@@ -269,6 +269,54 @@ deno lint
 deno fmt
 ```
 
+## POC Usage
+
+### Quick Start
+
+```bash
+# 1. Start Camp Boss daemon
+pd boss start
+
+# 2. Open dashboard (optional)
+pd boomtown
+
+# 3. Start a Caravan
+pd stake "Implement user authentication"
+
+# 4. Check status
+pd list
+pd boss status
+
+# 5. Attach to sessions
+pd attach boss           # Camp Boss daemon
+pd attach pd-abc123      # Specific Caravan
+```
+
+### Event-Driven Flow
+
+The POC demonstrates automatic Prospect spawning via Claude Hooks:
+
+1. Trail Boss writes `QUESTION: Which auth provider?`
+2. PostToolUse hook detects the prefix
+3. Hook automatically spawns Claim Agent
+4. Claim Agent reads Ledger, answers, writes to Ledger
+5. Trail Boss writes `SPAWN: surveyor --task "Design auth"`
+6. Hook spawns Surveyor
+7. Surveyor completes design, writes `OUTPUT: design=...`
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `pd boss start` | Start Camp Boss daemon |
+| `pd boss stop` | Stop daemon |
+| `pd boss status` | Check daemon status |
+| `pd stake "task"` | Start new Caravan |
+| `pd prospect <role>` | Spawn specific Prospect |
+| `pd attach [target]` | Attach to tmux session |
+| `pd list` | List all sessions |
+| `pd boomtown` | Open dashboard |
+
 ## Contributing
 
 1. Check `bd ready` for available tasks
