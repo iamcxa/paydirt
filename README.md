@@ -116,6 +116,49 @@ bd close <id>         # Complete claim
 bd sync               # Sync with git
 ```
 
+## Boomtown Dashboard
+
+Boomtown is the TUI dashboard for managing Paydirt caravans, built with mprocs.
+
+### Launch Dashboard
+
+```bash
+# Using compiled binary
+./paydirt boomtown
+
+# Or using deno directly
+deno run --allow-all paydirt.ts boomtown
+
+# Short form
+pd boomtown
+pd -b
+```
+
+### Dashboard Features
+
+| Pane          | Description                              |
+| ------------- | ---------------------------------------- |
+| Control Room  | Real-time status of all caravans         |
+| Camp Boss     | Interactive Claude session for commands  |
+| Caravan Panes | Direct access to running caravan tmux    |
+| Welcome       | Shows available commands when no caravans|
+
+### Hot Reload
+
+When new caravans are created, the dashboard can reload without losing the Camp Boss conversation:
+
+```bash
+# From another terminal, request dashboard reload
+paydirt reload-dashboard
+```
+
+### Gold Rush Theme
+
+Boomtown uses a Gold Rush aesthetic:
+- Dark brown background with gold/amber text
+- Status glyphs: ▶ (running), ◇ (idle), ■ (stopped)
+- Mining terminology throughout
+
 ## Usage
 
 ### Stake a Claim
@@ -188,7 +231,14 @@ Plugin components:
 - [Deno](https://deno.land/) 1.40+
 - [Claude Code](https://claude.ai/code) CLI
 - [tmux](https://github.com/tmux/tmux) for session management
+- [mprocs](https://github.com/pvolok/mprocs) for Boomtown dashboard
 - [bd](https://github.com/anthropics/beads) for state tracking
+
+### Install mprocs (macOS)
+
+```bash
+brew install mprocs
+```
 
 ## Installation
 
@@ -200,6 +250,9 @@ deno install --allow-all --name pd paydirt.ts
 
 # Or install both aliases
 deno install --allow-all --name paydirt paydirt.ts
+
+# Compile to standalone binary
+deno compile --allow-all --output=paydirt paydirt.ts
 ```
 
 ## Development
