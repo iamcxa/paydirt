@@ -1,6 +1,12 @@
 // src/paydirt/paths.test.ts
 import { assertEquals, assertMatch } from '@std/assert';
-import { getPaydirtInstallDir, getUserProjectDir } from './paths.ts';
+import {
+  getPaydirtInstallDir,
+  getUserProjectDir,
+  getPaydirtBinPath,
+  getProspectsDir,
+  getProspectPath,
+} from './paths.ts';
 
 Deno.test('getPaydirtInstallDir returns paydirt root directory', () => {
   const installDir = getPaydirtInstallDir();
@@ -11,4 +17,19 @@ Deno.test('getPaydirtInstallDir returns paydirt root directory', () => {
 Deno.test('getUserProjectDir returns current working directory', () => {
   const projectDir = getUserProjectDir();
   assertEquals(projectDir, Deno.cwd());
+});
+
+Deno.test('getPaydirtBinPath returns path to paydirt.ts', () => {
+  const binPath = getPaydirtBinPath();
+  assertMatch(binPath, /paydirt\/paydirt\.ts$/);
+});
+
+Deno.test('getProspectsDir returns prospects directory path', () => {
+  const prospectsDir = getProspectsDir();
+  assertMatch(prospectsDir, /paydirt\/prospects$/);
+});
+
+Deno.test('getProspectPath returns path to specific prospect file', () => {
+  const trailBossPath = getProspectPath('trail-boss');
+  assertMatch(trailBossPath, /paydirt\/prospects\/trail-boss\.md$/);
 });
