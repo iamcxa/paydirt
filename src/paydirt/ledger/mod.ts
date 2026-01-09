@@ -13,7 +13,7 @@ const LEDGER_TITLE = 'Decision Ledger';
  */
 export async function findLedger(): Promise<string | null> {
   const cmd = new Deno.Command('bd', {
-    args: ['list', '--label', LEDGER_LABEL, '--type', 'epic', '--limit', '1', '--brief'],
+    args: ['list', '--label', LEDGER_LABEL, '--type', 'epic', '--limit', '1'],
     stdout: 'piped',
     stderr: 'null',
   });
@@ -24,8 +24,8 @@ export async function findLedger(): Promise<string | null> {
   const output = new TextDecoder().decode(result.stdout).trim();
   if (!output) return null;
 
-  // Output format: "pd-xxx: Decision Ledger"
-  const match = output.match(/^(\S+):/);
+  // Output format: "pd-xxx [P2] [epic] open [pd:ledger] - Decision Ledger"
+  const match = output.match(/^(\S+)\s+/);
   return match ? match[1] : null;
 }
 
@@ -39,7 +39,6 @@ export async function createLedger(): Promise<string | null> {
       '--title', LEDGER_TITLE,
       '--type', 'epic',
       '--label', LEDGER_LABEL,
-      '--brief',
     ],
     stdout: 'piped',
     stderr: 'piped',
@@ -52,8 +51,8 @@ export async function createLedger(): Promise<string | null> {
   }
 
   const output = new TextDecoder().decode(result.stdout).trim();
-  // Output format: "Created: pd-xxx"
-  const match = output.match(/(?:Created:|^)(\S+)/);
+  // Output format: "✓ Created issue: pd-xxx\n  Title: ..."
+  const match = output.match(/Created issue:\s*(\S+)/);
   return match ? match[1] : null;
 }
 
@@ -87,8 +86,8 @@ export async function getDecisionHistory(ledgerId: string): Promise<string[]> {
   const output = new TextDecoder().decode(result.stdout);
   const lines = output.split('\n');
 
-  // Filter for DECISION prefix
-  return lines.filter((line) => line.startsWith('DECISION'));
+  // Filter for DECISION - bd comments output format: "[username] DECISION ..."
+  return lines.filter((line) => line.includes('DECISION'));
 }
 
 /**
