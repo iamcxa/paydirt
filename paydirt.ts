@@ -19,8 +19,10 @@
 import { parseArgs } from '@std/cli/parse-args';
 import {
   abandonCommand,
+  attachCommand,
   bossCommand,
   continueCommand,
+  listCommand,
   prospectCommand,
   stakeCommand,
   surveyCommand,
@@ -44,6 +46,9 @@ Commands:
   abandon [id]      Stop Caravan
   prospect <role>   Spawn specific Prospect
   boomtown          Open Dashboard
+  attach [target]   Attach to tmux session (use 'boss' for daemon)
+  list              List all Paydirt tmux sessions
+  boss <cmd>        Manage Camp Boss daemon (start|stop|status)
   ledger            View history
 
 Options:
@@ -126,6 +131,12 @@ async function main(): Promise<void> {
     }
     case 'boomtown':
       await launchBoomtown();
+      break;
+    case 'attach':
+      await attachCommand({ target: args._[1] as string });
+      break;
+    case 'list':
+      await listCommand();
       break;
     case 'boss': {
       const subcommand = args._[1] as string;
