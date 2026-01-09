@@ -127,10 +127,10 @@ Deno.test('generateCaravanScriptContent includes caravan info', () => {
   assertStringIncludes(script, 'Test Caravan');
 });
 
-Deno.test('generateCaravanScriptContent includes start and attach controls', () => {
+Deno.test('generateCaravanScriptContent includes start control', () => {
   const script = generateCaravanScriptContent('pd-001', 'Test', 'idle', '/bin/paydirt');
   assertStringIncludes(script, '[s]'); // Start
-  assertStringIncludes(script, '[a]'); // Attach
+  assertStringIncludes(script, 'START');
 });
 
 Deno.test('generateCaravanScriptContent uses correct tmux session name', () => {
@@ -141,7 +141,7 @@ Deno.test('generateCaravanScriptContent uses correct tmux session name', () => {
 Deno.test('generateCaravanScriptContent auto-attaches when session exists', () => {
   const script = generateCaravanScriptContent('pd-001', 'Test', 'running', '/bin/paydirt');
   assertStringIncludes(script, 'tmux has-session');
-  assertStringIncludes(script, 'attach_to_session');
+  assertStringIncludes(script, 'tmux attach');
 });
 
 // ========================================================================

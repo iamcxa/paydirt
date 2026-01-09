@@ -145,12 +145,12 @@ done
 
 /**
  * Generate Caravan pane script for a specific Caravan.
- * Shows Claude directly in mprocs pane or detail panel if not running.
+ * Prioritizes direct tmux attach for real-time agent visibility.
  *
  * Behavior:
- * - If tmux session exists: auto-attach (show Claude Code)
- * - If no session: show detail panel with [s] to start, [a] to attach
- * - After detach (Ctrl+b d): return to detail panel
+ * - If tmux session exists: attach directly (show Claude Code)
+ * - If no session: show waiting screen with [s] to start
+ * - After detach (Ctrl+b d): loop continues, checking for session
  *
  * @param caravanId - Caravan ID (e.g., 'pd-abc123')
  * @param caravanName - Display name for the Caravan
@@ -160,111 +160,64 @@ done
 export function generateCaravanScriptContent(
   caravanId: string,
   caravanName: string,
-  status: CaravanStatus,
+  _status: CaravanStatus,
   paydirtPath: string,
 ): string {
-  const statusGlyph = status === 'running' ? '▶' : status === 'idle' ? '◇' : '■';
-  const statusLabel = status.toUpperCase();
-  const progressFill = status === 'running' ? 5 : status === 'idle' ? 3 : 0;
-  const progressBar = '█'.repeat(progressFill) + '░'.repeat(5 - progressFill);
+  const sessionName = `paydirt-${caravanId}`;
   const safeName = caravanName.replace(/"/g, '\\"').substring(0, 42);
   const safeId = caravanId.substring(0, 20);
-  const sessionName = `paydirt-${caravanId}`;
 
   return `#!/bin/bash
 # PAYDIRT BOOMTOWN - Caravan Pane
-# Shows Claude directly or detail view
+# Direct tmux attach with fallback to detail view
+
 SESSION_NAME="${sessionName}"
 CARAVAN_ID="${safeId}"
 CARAVAN_NAME="${safeName}"
+PAYDIRT_BIN="${paydirtPath}"
 
-# Colors - Mining Camp Theme (Green/Gold)
-BG="\\033[48;5;22m"
-FG="\\033[38;5;156m"
+# Colors
 AMBER="\\033[38;5;214m"
+FG="\\033[38;5;156m"
 DIM="\\033[38;5;242m"
 RESET="\\033[0m"
 
-SPIN=('◐' '◓' '◑' '◒')
-FRAME=0
-
-show_detail_panel() {
-  local spin=\${SPIN[\$FRAME]}
-  FRAME=\$(( (FRAME + 1) % 4 ))
-  echo -ne "\${BG}"
+show_waiting() {
   clear
   echo -e "\${AMBER}"
-  echo "  ██████╗  █████╗ ██╗   ██╗██████╗ ██╗██████╗ ████████╗"
-  echo "  ██╔══██╗██╔══██╗╚██╗ ██╔╝██╔══██╗██║██╔══██╗╚══██╔══╝"
-  echo "  ██████╔╝███████║ ╚████╔╝ ██║  ██║██║██████╔╝   ██║   "
-  echo -e "\${FG}"
-  echo " ╔══════════════════════════════════════════════════════════════╗"
-  echo -e " ║  \${AMBER}\$spin CARAVAN:\${FG} \$CARAVAN_NAME"
-  echo " ╠══════════════════════════════════════════════════════════════╣"
-  printf " ║  ID: %-54s  ║\\n" "\$CARAVAN_ID"
-  echo -e " ║  STATUS: \${AMBER}${statusGlyph} ${statusLabel}\${FG} [${progressBar}]"
-  echo " ╠══════════════════════════════════════════════════════════════╣"
-  echo -e " ║  \${AMBER}[s]\${FG} START Caravan (launch Trail Boss)                      ║"
-  echo -e " ║  \${AMBER}[a]\${FG} ATTACH to running session                              ║"
-  echo -e " ║  \${DIM}[C-a] Focus process list  [q] Exit\${FG}                         ║"
-  echo " ╠══════════════════════════════════════════════════════════════╣"
-  if tmux has-session -t "\$SESSION_NAME" 2>/dev/null; then
-    echo -e " ║  \${FG}✓ Session ACTIVE - press [a] to attach\${FG}                     ║"
-  else
-    echo -e " ║  \${AMBER}○ Session NOT RUNNING - press [s] to start\${FG}                 ║"
-  fi
-  echo -e " ╚══════════════════════════════════════════════════════════════╝\${RESET}"
+  echo "  ╔════════════════════════════════════════════════════════════╗"
+  echo -e "  ║  CARAVAN: \${FG}\$CARAVAN_NAME\${AMBER}"
+  echo "  ╠════════════════════════════════════════════════════════════╣"
+  echo -e "  ║  ID: \$CARAVAN_ID"
+  echo -e "  ║  Session: \$SESSION_NAME"
+  echo "  ╠════════════════════════════════════════════════════════════╣"
+  echo -e "  ║  \${FG}[s]\${AMBER} START - Launch Trail Boss"
+  echo -e "  ║  \${DIM}Waiting for session...\${AMBER}"
+  echo "  ╚════════════════════════════════════════════════════════════╝"
+  echo -e "\${RESET}"
 }
 
 start_caravan() {
-  echo -e "\\n\${AMBER}▶ Starting Caravan...\${RESET}"
-  if ! tmux has-session -t "\$SESSION_NAME" 2>/dev/null; then
-    nohup "${paydirtPath}" continue \${CARAVAN_ID} </dev/null >/tmp/paydirt-\$\$.log 2>&1 &
-    echo -e "\${FG}Waiting for Claude to start...\${RESET}"
-    for i in {1..30}; do
-      if tmux has-session -t "\$SESSION_NAME" 2>/dev/null; then
-        echo -e "\${FG}✓ Trail Boss started!\${RESET}"
-        sleep 1
-        return 0
-      fi
-      echo -n "."
-      sleep 0.5
-    done
-    echo -e "\\n\${AMBER}⚠ Timeout. Check /tmp/paydirt-\$\$.log\${RESET}"
-    sleep 2
-    return 1
-  fi
-  return 0
+  echo -e "\\n\${AMBER}Starting caravan...\${RESET}"
+  "\$PAYDIRT_BIN" continue "\$CARAVAN_ID" &
+  sleep 2
 }
 
-attach_to_session() {
+# Main loop
+while true; do
   if tmux has-session -t "\$SESSION_NAME" 2>/dev/null; then
-    echo -e "\\n\${FG}▶ Attaching to Trail Boss...\${RESET}"
-    echo -e "\${DIM}(Press Ctrl+b d to detach)\${RESET}"
-    sleep 1
+    # Session exists - attach directly
     tmux attach -t "\$SESSION_NAME"
-    echo -e "\\n\${FG}◇ Detached\${RESET}"
+    # After detach, loop continues
     sleep 1
   else
-    echo -e "\\n\${AMBER}⚠ No active session\${RESET}"
-    sleep 2
+    # No session - show waiting screen
+    show_waiting
+    read -t 2 -n 1 key 2>/dev/null || key=""
+    case "\$key" in
+      s|S) start_caravan ;;
+    esac
   fi
-}
-
-# MAIN LOOP
-while true; do
-  # Auto-attach if session exists
-  if tmux has-session -t "\$SESSION_NAME" 2>/dev/null; then
-    attach_to_session
-    continue
-  fi
-  # Show detail panel
-  show_detail_panel
-  read -t 1 -n 1 key 2>/dev/null || key=""
-  case "\$key" in
-    s|S) start_caravan ;;
-    a|A) attach_to_session ;;
-  esac
 done
 `;
 }
