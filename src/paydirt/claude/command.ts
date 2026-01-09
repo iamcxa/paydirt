@@ -86,23 +86,23 @@ export function buildClaudeCommand(options: ClaudeCommandOptions): string {
     paydirtBinPath: paydirtBinPath || `${paydirtInstallDir}/paydirt.ts`,
   });
   const envString = Object.entries(envVars)
-    .map(([key, value]) => `${key}=${value}`)
+    .map(([key, value]) => `${key}=${shellEscape(value)}`)
     .join(' ');
 
   // Build command arguments
   const args: string[] = ['claude'];
 
   // 1. Load paydirt as plugin (provides agents, commands, skills)
-  args.push(`--plugin-dir ${paydirtInstallDir}`);
+  args.push(`--plugin-dir ${shellEscape(paydirtInstallDir)}`);
 
   // 2. Add paydirt install directory (for agent to read paydirt code)
-  args.push(`--add-dir ${paydirtInstallDir}`);
+  args.push(`--add-dir ${shellEscape(paydirtInstallDir)}`);
 
   // 3. Add user's project directory (main working directory)
-  args.push(`--add-dir ${userProjectDir}`);
+  args.push(`--add-dir ${shellEscape(userProjectDir)}`);
 
   // 4. Specify agent file
-  args.push(`--agent ${paydirtInstallDir}/prospects/${role}.md`);
+  args.push(`--agent ${shellEscape(`${paydirtInstallDir}/prospects/${role}.md`)}`);
 
   // 5. Resume flag
   if (resume) {

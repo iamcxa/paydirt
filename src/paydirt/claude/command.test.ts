@@ -1,6 +1,6 @@
 // src/paydirt/claude/command.test.ts
 import { assertEquals, assertStringIncludes } from '@std/assert';
-import { buildClaudeCommand, buildPaydirtEnvVars } from './command.ts';
+import { buildClaudeCommand, buildPaydirtEnvVars, shellEscape } from './command.ts';
 
 Deno.test('buildPaydirtEnvVars includes required variables', () => {
   const vars = buildPaydirtEnvVars({
@@ -25,7 +25,7 @@ Deno.test('buildClaudeCommand includes --plugin-dir flag', () => {
     prompt: 'Test task',
   });
 
-  assertStringIncludes(cmd, '--plugin-dir /opt/paydirt');
+  assertStringIncludes(cmd, "--plugin-dir '/opt/paydirt'");
 });
 
 Deno.test('buildClaudeCommand includes --add-dir flags', () => {
@@ -38,8 +38,8 @@ Deno.test('buildClaudeCommand includes --add-dir flags', () => {
     prompt: 'Test task',
   });
 
-  assertStringIncludes(cmd, '--add-dir /opt/paydirt');
-  assertStringIncludes(cmd, '--add-dir /home/user/project');
+  assertStringIncludes(cmd, "--add-dir '/opt/paydirt'");
+  assertStringIncludes(cmd, "--add-dir '/home/user/project'");
 });
 
 Deno.test('buildClaudeCommand includes --agent flag', () => {
@@ -52,5 +52,49 @@ Deno.test('buildClaudeCommand includes --agent flag', () => {
     prompt: 'Test task',
   });
 
-  assertStringIncludes(cmd, '--agent /opt/paydirt/prospects/miner.md');
+  assertStringIncludes(cmd, '--agent');
+  assertStringIncludes(cmd, '/opt/paydirt/prospects/miner.md');
+});
+
+Deno.test('shellEscape handles single quotes', () => {
+  const result = shellEscape("it's");
+  assertEquals(result, "'it'\\''s'");
+});
+
+Deno.test('buildClaudeCommand includes --resume when specified', () => {
+  const cmd = buildClaudeCommand({
+    role: 'miner',
+    claimId: 'pd-001',
+    caravanName: 'test',
+    paydirtInstallDir: '/opt/paydirt',
+    userProjectDir: '/home/user/project',
+    prompt: 'Test task',
+    resume: true,
+  });
+  assertStringIncludes(cmd, '--resume');
+});
+
+Deno.test('buildClaudeCommand includes --dangerously-skip-permissions when specified', () => {
+  const cmd = buildClaudeCommand({
+    role: 'miner',
+    claimId: 'pd-001',
+    caravanName: 'test',
+    paydirtInstallDir: '/opt/paydirt',
+    userProjectDir: '/home/user/project',
+    prompt: 'Test task',
+    dangerouslySkipPermissions: true,
+  });
+  assertStringIncludes(cmd, '--dangerously-skip-permissions');
+});
+
+Deno.test('buildClaudeCommand escapes paths with spaces', () => {
+  const cmd = buildClaudeCommand({
+    role: 'miner',
+    claimId: 'pd-001',
+    caravanName: 'test',
+    paydirtInstallDir: '/opt/pay dirt',
+    userProjectDir: '/home/user/my project',
+    prompt: 'Test task',
+  });
+  assertStringIncludes(cmd, "'"); // Should have quotes for escaping
 });
