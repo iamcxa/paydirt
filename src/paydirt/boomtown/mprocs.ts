@@ -268,49 +268,52 @@ done
 }
 
 /**
- * Generate welcome message script for empty dashboard.
+ * Generate welcome message script content for empty dashboard.
  * Shows available operations when no Caravans exist.
+ * Returns a standalone bash script (not inline commands).
  */
 export function generateWelcomeScript(): string {
-  const lines = [
-    'clear',
-    'echo ""',
-    'echo " ╔════════════════════════════════════════════════════════════════╗"',
-    'echo " ║                                                                ║"',
-    'echo " ║   ██████╗  █████╗ ██╗   ██╗██████╗ ██╗██████╗ ████████╗       ║"',
-    'echo " ║   ██╔══██╗██╔══██╗╚██╗ ██╔╝██╔══██╗██║██╔══██╗╚══██╔══╝       ║"',
-    'echo " ║   ██████╔╝███████║ ╚████╔╝ ██║  ██║██║██████╔╝   ██║          ║"',
-    'echo " ║   ██╔═══╝ ██╔══██║  ╚██╔╝  ██║  ██║██║██╔══██╗   ██║          ║"',
-    'echo " ║   ██║     ██║  ██║   ██║   ██████╔╝██║██║  ██║   ██║          ║"',
-    'echo " ║   ╚═╝     ╚═╝  ╚═╝   ╚═╝   ╚═════╝ ╚═╝╚═╝  ╚═╝   ╚═╝          ║"',
-    'echo " ║                                                                ║"',
-    'echo " ╠════════════════════════════════════════════════════════════════╣"',
-    'echo " ║  ◇ WELCOME TO BOOMTOWN                                         ║"',
-    'echo " ╠════════════════════════════════════════════════════════════════╣"',
-    'echo " ║                                                                ║"',
-    'echo " ║   No active Caravans detected.                                 ║"',
-    'echo " ║                                                                ║"',
-    'echo " ║   ┌──────────────────────────────────────────────────────┐     ║"',
-    'echo " ║   │  AVAILABLE OPERATIONS                                │     ║"',
-    'echo " ║   ├──────────────────────────────────────────────────────┤     ║"',
-    'echo " ║   │                                                      │     ║"',
-    'echo " ║   │  ▶ START NEW CARAVAN                                 │     ║"',
-    'echo " ║   │    paydirt stake \\"Your task description\\"            │     ║"',
-    'echo " ║   │                                                      │     ║"',
-    'echo " ║   │  ◇ RESUME EXISTING CARAVAN                           │     ║"',
-    'echo " ║   │    paydirt continue <caravan-id>                     │     ║"',
-    'echo " ║   │                                                      │     ║"',
-    'echo " ║   │  ■ LIST ALL CARAVANS                                 │     ║"',
-    'echo " ║   │    paydirt survey                                    │     ║"',
-    'echo " ║   │                                                      │     ║"',
-    'echo " ║   └──────────────────────────────────────────────────────┘     ║"',
-    'echo " ║                                                                ║"',
-    'echo " ╚════════════════════════════════════════════════════════════════╝"',
-    'echo ""',
-    'read -r -p " Press any key to refresh... " -n1 -s',
-  ];
+  return `#!/bin/bash
+# Welcome panel for Boomtown when no Caravans exist
 
-  return lines.join('; ');
+while true; do
+  clear
+  echo ""
+  echo " ╔════════════════════════════════════════════════════════════════╗"
+  echo " ║                                                                ║"
+  echo " ║   ██████╗  █████╗ ██╗   ██╗██████╗ ██╗██████╗ ████████╗       ║"
+  echo " ║   ██╔══██╗██╔══██╗╚██╗ ██╔╝██╔══██╗██║██╔══██╗╚══██╔══╝       ║"
+  echo " ║   ██████╔╝███████║ ╚████╔╝ ██║  ██║██║██████╔╝   ██║          ║"
+  echo " ║   ██╔═══╝ ██╔══██║  ╚██╔╝  ██║  ██║██║██╔══██╗   ██║          ║"
+  echo " ║   ██║     ██║  ██║   ██║   ██████╔╝██║██║  ██║   ██║          ║"
+  echo " ║   ╚═╝     ╚═╝  ╚═╝   ╚═╝   ╚═════╝ ╚═╝╚═╝  ╚═╝   ╚═╝          ║"
+  echo " ║                                                                ║"
+  echo " ╠════════════════════════════════════════════════════════════════╣"
+  echo " ║  ◇ WELCOME TO BOOMTOWN                                         ║"
+  echo " ╠════════════════════════════════════════════════════════════════╣"
+  echo " ║                                                                ║"
+  echo " ║   No active Caravans detected.                                 ║"
+  echo " ║                                                                ║"
+  echo " ║   ┌──────────────────────────────────────────────────────┐     ║"
+  echo " ║   │  AVAILABLE OPERATIONS                                │     ║"
+  echo " ║   ├──────────────────────────────────────────────────────┤     ║"
+  echo " ║   │                                                      │     ║"
+  echo " ║   │  ▶ START NEW CARAVAN                                 │     ║"
+  echo ' ║   │    paydirt stake "Your task description"            │     ║'
+  echo " ║   │                                                      │     ║"
+  echo " ║   │  ◇ RESUME EXISTING CARAVAN                           │     ║"
+  echo " ║   │    paydirt continue <caravan-id>                     │     ║"
+  echo " ║   │                                                      │     ║"
+  echo " ║   │  ■ LIST ALL CARAVANS                                 │     ║"
+  echo " ║   │    paydirt survey                                    │     ║"
+  echo " ║   │                                                      │     ║"
+  echo " ║   └──────────────────────────────────────────────────────┘     ║"
+  echo " ║                                                                ║"
+  echo " ╚════════════════════════════════════════════════════════════════╝"
+  echo ""
+  read -r -p " Press any key to refresh... " -n1 -s
+done
+`;
 }
 
 /**
@@ -327,6 +330,7 @@ export function generateWelcomeScript(): string {
  * @param statusScriptPath - Path to Control Room status script
  * @param caravanScriptPaths - Map of Caravan ID to pane script path
  * @param campBossScriptPath - Path to Camp Boss pane script
+ * @param welcomeScriptPath - Path to Welcome pane script (used when no Caravans)
  * @returns YAML configuration string
  */
 export function generateMprocsConfig(
@@ -334,6 +338,7 @@ export function generateMprocsConfig(
   statusScriptPath?: string,
   caravanScriptPaths?: Map<string, string>,
   campBossScriptPath?: string,
+  welcomeScriptPath?: string,
 ): string {
   const lines: string[] = [];
 
@@ -436,7 +441,13 @@ export function generateMprocsConfig(
     lines.push('  # WELCOME PANEL - Getting Started');
     lines.push('  # ========================================================================');
     lines.push('  "◇ WELCOME":');
-    lines.push(`    shell: "bash -c 'while true; do ${generateWelcomeScript()}; done'"`);
+    if (welcomeScriptPath) {
+      lines.push(`    shell: "bash ${welcomeScriptPath}"`);
+    } else {
+      lines.push(
+        `    shell: "bash -c 'while true; do clear; echo \\"WELCOME TO BOOMTOWN\\"; echo \\"No active Caravans detected.\\"; echo \\"Run: paydirt stake task\\"; sleep 3; done'"`,
+      );
+    }
   }
 
   lines.push('');
@@ -479,8 +490,22 @@ export async function writeMprocsConfig(
     caravanScriptPaths.set(caravan.id, scriptPath);
   }
 
+  // Write Welcome script (used when no Caravans)
+  let welcomeScriptPath: string | undefined;
+  if (caravans.length === 0) {
+    welcomeScriptPath = `${tempDir}/welcome.sh`;
+    await Deno.writeTextFile(welcomeScriptPath, generateWelcomeScript());
+    await Deno.chmod(welcomeScriptPath, 0o755);
+  }
+
   // Generate and write mprocs config
-  const config = generateMprocsConfig(caravans, statusScriptPath, caravanScriptPaths);
+  const config = generateMprocsConfig(
+    caravans,
+    statusScriptPath,
+    caravanScriptPaths,
+    undefined, // campBossScriptPath - not yet implemented
+    welcomeScriptPath,
+  );
   const configPath = `${tempDir}/mprocs.yaml`;
   await Deno.writeTextFile(configPath, config);
 

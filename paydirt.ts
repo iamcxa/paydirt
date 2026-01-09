@@ -24,6 +24,7 @@ import {
   stakeCommand,
   surveyCommand,
 } from './src/paydirt/cli/mod.ts';
+import { launchBoomtown } from './src/paydirt/boomtown/mod.ts';
 
 const VERSION = '0.1.0';
 
@@ -51,7 +52,7 @@ Options:
 `);
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const args = parseArgs(Deno.args, {
     boolean: ['help', 'version', 'dry-run', 'force'],
     string: ['task', 'claim'],
@@ -121,7 +122,7 @@ function main(): void {
       break;
     }
     case 'boomtown':
-      console.log('[TODO] Open Dashboard');
+      await launchBoomtown();
       break;
     case 'ledger':
       console.log('[TODO] View history');
