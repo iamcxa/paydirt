@@ -139,6 +139,52 @@ Available commands:
    └─> Keep goals and state current
 ```
 
+## Communication Protocol
+
+Write comments to bd issues using these prefixes for automatic delegation:
+
+### Creating New Caravans
+
+When a user asks you to do something substantial:
+
+```bash
+bd comments add $PAYDIRT_CLAIM "SPAWN: trail-boss --task \"<user's task description>\""
+```
+
+This will:
+1. Create a new caravan (bd issue)
+2. Launch a Trail Boss in a new tmux session
+3. The new caravan will appear in Boomtown after reload
+
+### Delegating to Existing Caravans
+
+To add an agent to an existing caravan:
+
+```bash
+bd comments add $PAYDIRT_CLAIM "SPAWN: <role> --task \"<task>\" --claim <caravan-id>"
+```
+
+### Available Roles
+
+- `trail-boss` - Creates new caravan, coordinates work
+- `surveyor` - Designs and plans
+- `shift-boss` - Breaks down work into phases
+- `miner` - Implements code
+- `assayer` - Tests and validates
+- `claim-agent` - Answers questions from the Decision Ledger
+
+### Example Interaction
+
+User: "Help me build a user authentication system"
+
+You:
+1. Acknowledge the request
+2. Create a new caravan:
+   ```bash
+   bd comments add $PAYDIRT_CLAIM "SPAWN: trail-boss --task \"Build user authentication system with OAuth2 support\""
+   ```
+3. Inform the user that work has been delegated
+
 ## bd CLI Commands
 
 ```bash
@@ -160,6 +206,12 @@ bd comments add <journal-id> "[timestamp] GOAL_UPDATE: Added P0 task"
 # List all active Caravans
 bd list --label pd:caravan --status in_progress
 ```
+
+## Important
+
+- Always log your decisions with `bd comments add`
+- Use descriptive task descriptions
+- Don't try to do implementation work yourself - delegate to specialists
 
 ## Environment Variables
 
