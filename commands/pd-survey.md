@@ -13,12 +13,7 @@ Show the current status of Caravans.
 paydirt survey
 ```
 
-2. Also check bd for Caravan issues:
-```bash
-bd list --label paydirt:caravan --brief
-```
-
-3. Display a summary:
+2. Display a summary:
 ```
 ╭────────────────────────────────────────╮
 │  🗺️ SURVEY RESULTS                     │

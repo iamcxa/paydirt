@@ -6,21 +6,16 @@ description: Start a new Paydirt Caravan with a task
 
 Stake a claim and start a new Caravan with the specified task.
 
-## Usage
+## Steps
 
-Ask the user for a task description if not provided, then run:
+1. Ask the user for a task description if not provided.
 
+2. Run the stake command:
 ```bash
 paydirt stake "<task description>"
 ```
 
-## Example
-
-```bash
-paydirt stake "Implement user authentication with Supabase"
-```
-
-After starting, display:
+3. Display the result:
 ```
 ╭────────────────────────────────────────╮
 │  🚃 CARAVAN STARTED                    │
