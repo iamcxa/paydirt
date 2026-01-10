@@ -44,6 +44,32 @@ if echo "$TOOL_INPUT" | grep -qE "bd create.*--label[= ].*pd:decision"; then
   fi
 fi
 
+# --- Decision Close Detection ---
+# Detect bd close -> check if pd:decision -> respawn blocked miner
+# Note: This queries bd show to check labels and dependents
+if echo "$TOOL_INPUT" | grep -q "bd close"; then
+  CLOSED_ID=$(echo "$TOOL_INPUT" | sed -n 's/.*bd close[[:space:]]\+\([^[:space:]]*\).*/\1/p' | head -1)
+
+  if [ -n "$CLOSED_ID" ]; then
+    # Get issue details (labels and dependents)
+    ISSUE_JSON=$(bd show "$CLOSED_ID" --json 2>/dev/null || echo "{}")
+
+    # Check if it's a pd:decision issue
+    if echo "$ISSUE_JSON" | grep -q '"pd:decision"'; then
+      # Get the first dependent (the blocked work issue)
+      BLOCKED_ISSUE=$(echo "$ISSUE_JSON" | jq -r '.dependents[0] // empty' 2>/dev/null)
+
+      if [ -n "$BLOCKED_ISSUE" ] && [ -n "$PAYDIRT_BIN" ]; then
+        # Get resume context from the blocked issue's comments
+        RESUME_CONTEXT=$(bd comments "$BLOCKED_ISSUE" 2>/dev/null | grep "^BLOCKED:" | tail -1)
+        RESUME_TASK=$(echo "$RESUME_CONTEXT" | sed -n 's/.*resume-task:[[:space:]]*\(.*\)/\1/p')
+
+        run_cmd "$PAYDIRT_BIN" prospect miner --claim "$BLOCKED_ISSUE" --task "${RESUME_TASK:-Resume work}" --background
+      fi
+    fi
+  fi
+fi
+
 # Check if this is a bd comments add command
 echo "$TOOL_INPUT" | grep -q "bd comments add" || exit 0
 

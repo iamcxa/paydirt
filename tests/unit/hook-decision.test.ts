@@ -35,3 +35,31 @@ Deno.test("extractIssueIdFromOutput returns null for invalid output", () => {
   const output = "Error: something went wrong";
   assertEquals(extractIssueIdFromOutput(output), null);
 });
+
+// --- Decision Close Detection Tests ---
+
+function extractClosedId(toolInput: string): string | null {
+  const match = toolInput.match(/bd close\s+(\S+)/);
+  return match ? match[1] : null;
+}
+
+function shouldRespawnMiner(labels: string[], dependents: string[]): boolean {
+  return labels.includes("pd:decision") && dependents.length > 0;
+}
+
+Deno.test("extractClosedId extracts issue ID from bd close", () => {
+  const input = 'bd close pd-dec123 --reason "Done"';
+  assertEquals(extractClosedId(input), "pd-dec123");
+});
+
+Deno.test("shouldRespawnMiner returns true when pd:decision with dependents", () => {
+  assertEquals(shouldRespawnMiner(["pd:decision"], ["pd-work456"]), true);
+});
+
+Deno.test("shouldRespawnMiner returns false without pd:decision label", () => {
+  assertEquals(shouldRespawnMiner(["pd:task"], ["pd-work456"]), false);
+});
+
+Deno.test("shouldRespawnMiner returns false without dependents", () => {
+  assertEquals(shouldRespawnMiner(["pd:decision"], []), false);
+});
