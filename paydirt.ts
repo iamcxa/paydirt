@@ -27,7 +27,7 @@ import {
   stakeCommand,
   surveyCommand,
 } from './src/paydirt/cli/mod.ts';
-import { launchBoomtown } from './src/paydirt/boomtown/mod.ts';
+import { launchZellijBoomtown } from './src/paydirt/boomtown/zellij-dashboard.ts';
 
 const VERSION = '0.1.0';
 
@@ -130,7 +130,7 @@ async function main(): Promise<void> {
       break;
     }
     case 'boomtown':
-      await launchBoomtown();
+      await launchZellijBoomtown();
       break;
     case 'attach':
       await attachCommand({ target: args._[1] as string });
