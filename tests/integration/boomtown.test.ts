@@ -109,10 +109,10 @@ Deno.test('Control Room status script includes color definitions', () => {
 Deno.test('Control Room status script includes system panels', () => {
   const script = generateStatusScriptContent();
 
-  // Must have MINING CAMP STATUS (system status), CARAVAN STATUS, and MPROCS CONTROLS
+  // Must have MINING CAMP STATUS (system status), CARAVAN STATUS, and ZELLIJ CONTROLS
   assertStringIncludes(script, 'MINING CAMP STATUS');
   assertStringIncludes(script, 'CARAVAN STATUS');
-  assertStringIncludes(script, 'MPROCS CONTROLS');
+  assertStringIncludes(script, 'ZELLIJ CONTROLS');
 });
 
 // ============================================================================

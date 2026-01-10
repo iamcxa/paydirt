@@ -32,11 +32,11 @@ Deno.test('generateStatusScriptContent includes MINING CAMP STATUS panel', () =>
   assertStringIncludes(script, 'RUNTIME');
 });
 
-Deno.test('generateStatusScriptContent includes MPROCS CONTROLS panel', () => {
+Deno.test('generateStatusScriptContent includes ZELLIJ CONTROLS panel', () => {
   const script = generateStatusScriptContent();
-  assertStringIncludes(script, 'MPROCS CONTROLS');
-  assertStringIncludes(script, '[C-a]');
-  assertStringIncludes(script, '[j/k]');
+  assertStringIncludes(script, 'ZELLIJ CONTROLS');
+  assertStringIncludes(script, '[C-p]');
+  assertStringIncludes(script, '[C-t]');
 });
 
 Deno.test('generateStatusScriptContent uses Gold Rush color theme', () => {
