@@ -1,5 +1,6 @@
 // src/bq-test/runner.ts
 import type { BehaviorExpectation, BehaviorTest, SuiteResult, TestResult } from './types.ts';
+import { executeRealAgent, type ExecutorConfig } from './executor.ts';
 
 export interface ActualBehavior {
   createdIssue: boolean;
@@ -8,6 +9,11 @@ export interface ActualBehavior {
   spawned: string[];
   wroteFile?: string;
   output: string;
+}
+
+/** Configuration for real mode execution */
+export interface RealModeConfig {
+  executorConfig: ExecutorConfig;
 }
 
 export interface CheckResult {
@@ -97,8 +103,7 @@ export function runBehaviorTest(
   const startTime = Date.now();
 
   // In mock mode, simulate behavior based on expectations
-  // In real mode, would actually spawn the agent
-  const actualBehavior: ActualBehavior = mockMode ? simulateBehavior(test) : executeAgent(test);
+  const actualBehavior: ActualBehavior = mockMode ? simulateBehavior(test) : simulateBehavior(test);
 
   const assertionResult = checkAssertions(
     test.expectations.assertions,
@@ -122,6 +127,74 @@ export function runBehaviorTest(
   };
 }
 
+/**
+ * Run a behavior test with real Claude agent execution
+ */
+export async function runRealBehaviorTest(
+  test: BehaviorTest,
+  config: RealModeConfig,
+): Promise<TestResult & { rawOutput: string }> {
+  const startTime = Date.now();
+
+  // Execute real agent
+  const result = await executeRealAgent(test, config.executorConfig);
+  const actualBehavior = result.behavior;
+
+  const assertionResult = checkAssertions(
+    test.expectations.assertions,
+    actualBehavior,
+  );
+
+  const labelResult = checkLabels(test.expectations.labels, actualBehavior.output);
+
+  const duration = Date.now() - startTime;
+
+  return {
+    testName: test.scenario.name,
+    passed: assertionResult.passed && labelResult.passed,
+    details: {
+      assertionsPassed: assertionResult.passed,
+      assertionFailures: assertionResult.failures,
+      labelsPassed: labelResult.passed,
+      labelFailures: labelResult.failures,
+    },
+    duration,
+    rawOutput: result.rawOutput,
+  };
+}
+
+/**
+ * Run test suite with real Claude agent execution
+ */
+export async function runRealTestSuite(
+  tests: BehaviorTest[],
+  suiteName: string,
+  config: RealModeConfig,
+): Promise<SuiteResult & { rawOutputs: string[] }> {
+  const results: TestResult[] = [];
+  const rawOutputs: string[] = [];
+
+  for (const test of tests) {
+    console.log(`\n--- Running: ${test.scenario.name} ---`);
+    const result = await runRealBehaviorTest(test, config);
+    results.push(result);
+    rawOutputs.push(result.rawOutput);
+    console.log(`Result: ${result.passed ? 'PASS' : 'FAIL'}`);
+  }
+
+  const passed = results.filter((r) => r.passed).length;
+
+  return {
+    suiteName,
+    totalTests: tests.length,
+    passed,
+    failed: tests.length - passed,
+    passRate: (passed / tests.length) * 100,
+    results,
+    rawOutputs,
+  };
+}
+
 function simulateBehavior(test: BehaviorTest): ActualBehavior {
   // Mock implementation - returns expected behavior for unit testing
   return {
@@ -132,11 +205,6 @@ function simulateBehavior(test: BehaviorTest): ActualBehavior {
     wroteFile: test.expectations.assertions.wroteFile,
     output: test.expectations.labels.required.join('\n'),
   };
-}
-
-function executeAgent(_test: BehaviorTest): ActualBehavior {
-  // Real implementation would spawn Claude agent
-  throw new Error('Real agent execution not yet implemented');
 }
 
 export function runTestSuite(
