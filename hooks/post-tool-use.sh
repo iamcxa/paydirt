@@ -48,19 +48,25 @@ fi
 # Detect bd close -> check if pd:decision -> respawn blocked miner
 # Note: This queries bd show to check labels and dependents
 if echo "$TOOL_INPUT" | grep -q "bd close"; then
-  CLOSED_ID=$(echo "$TOOL_INPUT" | sed -n 's/.*bd close[[:space:]]\+\([^[:space:]]*\).*/\1/p' | head -1)
+  # POSIX-compatible: use [[:space:]][[:space:]]* instead of GNU's [[:space:]]\+
+  CLOSED_ID=$(echo "$TOOL_INPUT" | sed -n 's/.*bd close[[:space:]][[:space:]]*\([^[:space:]]*\).*/\1/p' | head -1)
 
   if [ -n "$CLOSED_ID" ]; then
     # Get issue details (labels and dependents)
-    ISSUE_JSON=$(bd show "$CLOSED_ID" --json 2>/dev/null || echo "{}")
+    # Note: bd show --json returns an array: [{...}]
+    ISSUE_JSON=$(bd show "$CLOSED_ID" --json 2>/dev/null || echo "[]")
 
-    # Check if it's a pd:decision issue
-    if echo "$ISSUE_JSON" | grep -q '"pd:decision"'; then
+    # Check if it's a pd:decision issue (properly parse JSON array)
+    HAS_DECISION_LABEL=$(echo "$ISSUE_JSON" | jq -r '.[0].labels // [] | any(. == "pd:decision")' 2>/dev/null)
+    if [ "$HAS_DECISION_LABEL" = "true" ]; then
       # Get the first dependent (the blocked work issue)
-      BLOCKED_ISSUE=$(echo "$ISSUE_JSON" | jq -r '.dependents[0] // empty' 2>/dev/null)
+      # Note: bd show --json returns array format, so use .[0]
+      BLOCKED_ISSUE=$(echo "$ISSUE_JSON" | jq -r '.[0].dependents[0] // empty' 2>/dev/null)
 
       if [ -n "$BLOCKED_ISSUE" ] && [ -n "$PAYDIRT_BIN" ]; then
         # Get resume context from the blocked issue's comments
+        # Known limitation: resume-task extraction only works for single-line BLOCKED comments
+        # Multi-line comments will only capture the first line. Acceptable for POC.
         RESUME_CONTEXT=$(bd comments "$BLOCKED_ISSUE" 2>/dev/null | grep "^BLOCKED:" | tail -1)
         RESUME_TASK=$(echo "$RESUME_CONTEXT" | sed -n 's/.*resume-task:[[:space:]]*\(.*\)/\1/p')
 
