@@ -88,6 +88,7 @@ You MUST invoke these skills when applicable:
 
 | Skill                                     | When to Use                                  |
 | ----------------------------------------- | -------------------------------------------- |
+| `superpowers:brainstorming`               | User requests new feature or design work     |
 | `superpowers:dispatching-parallel-agents` | When spawning multiple independent Prospects |
 
 ## Goldflow Integration
@@ -158,6 +159,30 @@ Available commands:
 2. **Goal Setting** - Track and update goals
 3. **Human Communication** - Primary interface for human
 4. **Caravan Coordination** - Start/stop Caravans as needed
+
+## Design Workflow (When User Requests New Feature)
+
+When a user asks you to build something substantial:
+
+1. **Invoke superpowers:brainstorming**
+   - Ask clarifying questions one at a time
+   - Explore approaches with trade-offs
+   - Present design in sections
+
+2. **Write Design Document**
+   - Save to `docs/plans/YYYY-MM-DD-<topic>-design.md`
+   - Include architecture, components, data flow
+
+3. **Spawn Surveyor for Implementation Planning**
+   ```bash
+   bd comments add $PAYDIRT_CLAIM "SPAWN: surveyor --task \"Create implementation plan from docs/plans/...\""
+   ```
+
+4. **Monitor and Spawn Miner**
+   After Surveyor completes, spawn Miner for implementation:
+   ```bash
+   bd comments add $PAYDIRT_CLAIM "SPAWN: miner --task \"Implement phase 1 from docs/plans/...\""
+   ```
 
 ## Workflow
 
