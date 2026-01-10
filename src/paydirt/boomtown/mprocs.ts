@@ -105,8 +105,8 @@ print_caravan_stats() {
 
   # Query bd for Caravan counts
   if command -v bd &> /dev/null; then
-    active=\$(bd list --label paydirt:caravan --status in_progress 2>/dev/null | wc -l | tr -d ' ')
-    idle=\$(bd list --label paydirt:caravan --status open 2>/dev/null | wc -l | tr -d ' ')
+    active=\$(bd list --label pd:caravan --status in_progress 2>/dev/null | wc -l | tr -d ' ')
+    idle=\$(bd list --label pd:caravan --status open 2>/dev/null | wc -l | tr -d ' ')
   fi
 
   local total=\$((active + idle))

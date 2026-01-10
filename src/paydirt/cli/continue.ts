@@ -14,7 +14,7 @@ export function continueCommand(options: ContinueOptions): void {
   } else {
     // Resume most recent active Caravan
     console.log('Resuming most recent Caravan...');
-    // TODO: bd list --label paydirt:caravan --status in_progress --limit 1
+    // TODO: bd list --label pd:caravan --status in_progress --limit 1
     // TODO: Find tmux session
     // TODO: Reattach to session
   }

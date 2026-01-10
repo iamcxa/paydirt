@@ -13,7 +13,7 @@ export function surveyCommand(options: SurveyOptions): void {
   } else {
     // List all Caravans
     console.log('Surveying all Caravans...');
-    // TODO: bd list --label paydirt:caravan
+    // TODO: bd list --label pd:caravan
   }
 
   console.log('\n[TODO] Implement bd integration');

@@ -174,12 +174,12 @@ async function listTmuxSessions(): Promise<string[]> {
 
 /**
  * List Caravans from bd CLI (stub - will be replaced by bd-cli/mod.ts).
- * Returns open Caravans with the paydirt:caravan label.
+ * Returns open Caravans with the pd:caravan label.
  */
 async function listCaravans(_status?: string): Promise<CaravanInfo[]> {
   try {
     const cmd = new Deno.Command('bd', {
-      args: ['list', '--label', 'paydirt:caravan', '--status', 'open', '--brief'],
+      args: ['list', '--label', 'pd:caravan', '--status', 'open', '--brief'],
       stdout: 'piped',
       stderr: 'null',
     });
@@ -198,7 +198,7 @@ async function listCaravans(_status?: string): Promise<CaravanInfo[]> {
           id: match[1],
           title: match[2],
           status: 'open',
-          labels: ['paydirt:caravan'],
+          labels: ['pd:caravan'],
           priority: 2,
           created_at: new Date().toISOString(),
         });
