@@ -1,0 +1,10 @@
+# tests/fixtures/scenarios/camp-boss-spawn.yaml
+name: camp-boss-spawns-surveyor
+description: Camp Boss receives implementation request and spawns Surveyor
+agent: camp-boss
+input: |
+  User: I need to add user authentication to the application.
+context:
+  environment:
+    PAYDIRT_CLAIM: "pd-test123"
+    PAYDIRT_BIN: "./paydirt"

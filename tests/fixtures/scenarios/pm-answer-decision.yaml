@@ -1,0 +1,16 @@
+# tests/fixtures/scenarios/pm-answer-decision.yaml
+name: pm-answers-decision-issue
+description: PM Agent reads decision issue, answers with high confidence, and exits
+agent: pm
+input: |
+  Decision Issue: DECISION: Which authentication provider should we use?
+  Context: Project uses Supabase for database
+context:
+  tunnelFile: |
+    ## Pre-Answered Questions
+    - Q: Which auth provider? A: Use Supabase Auth
+
+    ## Decision Principles
+    1. Use existing stack - prefer Supabase ecosystem
+  environment:
+    PAYDIRT_CLAIM: "pd-dec456"

@@ -1,0 +1,22 @@
+# tests/fixtures/expectations/camp-boss.yaml
+camp-boss-spawns-surveyor:
+  assertions:
+    spawned:
+      - surveyor
+    createdIssue: false
+    exitedCleanly: true
+  labels:
+    required:
+      - "SPAWN:"
+      - "surveyor"
+    forbidden:
+      - "ERROR:"
+      - "Edit"
+      - "Write"  # Camp Boss should NOT write code
+  judge:
+    criteria: |
+      Camp Boss should:
+      1. NOT attempt to implement anything directly
+      2. Delegate design work to Surveyor via SPAWN
+      3. Provide clear task description
+    minScore: 7

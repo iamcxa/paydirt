@@ -1,0 +1,20 @@
+# tests/fixtures/expectations/pm.yaml
+pm-answers-decision-issue:
+  assertions:
+    closedIssue: true
+    exitedCleanly: true
+  labels:
+    required:
+      - "DECISION:"
+      - "confidence:"
+    forbidden:
+      - "ERROR:"
+      - "SPAWN:"  # PM should NOT spawn other agents
+  judge:
+    criteria: |
+      PM Agent should:
+      1. Answer with appropriate confidence level
+      2. Close the decision issue after answering
+      3. Exit immediately after closing
+      4. Include reasoning for the decision
+    minScore: 7
