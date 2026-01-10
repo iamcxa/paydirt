@@ -3,8 +3,9 @@
 /**
  * Boomtown Dashboard Module
  *
- * Provides the mprocs-based TUI dashboard for Paydirt.
+ * Provides the zellij-based TUI dashboard for Paydirt.
  * Gold Rush / Western Frontier aesthetic.
+ * Dynamic caravan tab addition via zellij actions.
  */
 
 // Dashboard launcher and hot-reload
@@ -31,3 +32,16 @@ export {
 
 // Camp Boss pane
 export { generateCampBossScriptContent } from './camp-boss-pane.ts';
+
+// Zellij integration
+export {
+  addCaravanTab,
+  attachSession,
+  BOOMTOWN_SESSION,
+  createSession,
+  generateBoomtownLayout,
+  removeCaravanTab,
+  sessionExists,
+} from './zellij.ts';
+
+export { launchZellijBoomtown } from './zellij-dashboard.ts';
