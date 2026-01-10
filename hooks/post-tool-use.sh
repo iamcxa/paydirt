@@ -18,9 +18,31 @@ set -e
 # Read tool output from stdin (we don't use it, but must consume it)
 cat > /dev/null
 
-# Check if this is a bd comments add command using CLAUDE_TOOL_INPUT
 # CLAUDE_TOOL_INPUT contains the Bash command that was executed
 TOOL_INPUT="${CLAUDE_TOOL_INPUT:-}"
+
+# Helper to run command (background unless PAYDIRT_HOOK_SYNC is set)
+run_cmd() {
+  if [ -n "$PAYDIRT_HOOK_SYNC" ]; then
+    "$@"
+  else
+    "$@" &
+  fi
+}
+
+# --- Decision Issue Detection ---
+# Detect bd create with pd:decision label -> spawn PM
+if echo "$TOOL_INPUT" | grep -qE "bd create.*--label[= ].*pd:decision"; then
+  # Extract issue ID from tool output (CLAUDE_TOOL_OUTPUT)
+  TOOL_OUTPUT="${CLAUDE_TOOL_OUTPUT:-}"
+  DECISION_ID=$(echo "$TOOL_OUTPUT" | sed -n 's/.*Created issue:[[:space:]]*\([^[:space:]]*\).*/\1/p' | head -1)
+
+  if [ -n "$DECISION_ID" ] && [ -n "$PAYDIRT_BIN" ]; then
+    run_cmd "$PAYDIRT_BIN" prospect pm --claim "$DECISION_ID" --background
+  fi
+fi
+
+# Check if this is a bd comments add command
 echo "$TOOL_INPUT" | grep -q "bd comments add" || exit 0
 
 # Extract the comment content using sed (portable)
@@ -32,15 +54,6 @@ COMMENT=$(echo "$TOOL_INPUT" | sed -n 's/.*bd comments add [^ ]* "\([^"]*\)".*/\
 PREFIX=$(echo "$COMMENT" | cut -d: -f1)
 # Get content (everything after "PREFIX: ")
 CONTENT=$(echo "$COMMENT" | sed 's/^[^:]*: *//')
-
-# Helper to run command (background unless PAYDIRT_HOOK_SYNC is set)
-run_cmd() {
-  if [ -n "$PAYDIRT_HOOK_SYNC" ]; then
-    "$@"
-  else
-    "$@" &
-  fi
-}
 
 case "$PREFIX" in
   SPAWN)
