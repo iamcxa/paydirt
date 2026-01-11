@@ -118,6 +118,40 @@ bd update $PAYDIRT_CLAIM --status "done"
 - `PAYDIRT_CLAIM` - Claim ID for this Caravan
 - `PAYDIRT_CARAVAN` - Caravan name
 
+## Decision Blocking
+
+When you encounter a decision that requires human/PM input:
+
+```bash
+# 1. Create a decision issue
+bd create --title "DECISION: <question>" \
+          --type task \
+          --label pd:decision \
+          --priority 1
+# Note the returned issue ID, e.g., beads-dec123
+
+# 2. Block your work on the decision
+bd dep add $PAYDIRT_CLAIM beads-dec123
+
+# 3. Record state for resume
+bd comments add $PAYDIRT_CLAIM "BLOCKED: waiting for beads-dec123
+resume-task: <what to do after decision>
+resume-context: <where you left off>"
+
+# 4. EXIT immediately - PM Agent will handle the decision
+#    Hook will respawn you after PM closes the decision
+```
+
+**When to create a decision issue:**
+- Architectural choices not in the plan (e.g., "OAuth vs JWT?")
+- Ambiguous requirements that need clarification
+- Trade-offs that need human judgment
+
+**Do NOT create decision issues for:**
+- Implementation details you can decide yourself
+- Things already specified in the plan
+- Technical problems (debug those yourself)
+
 ## Context Management
 
 When context-usage > 80%:
