@@ -120,6 +120,10 @@ export async function prospectCommand(options: ProspectOptions): Promise<void> {
     ? `You are a ${prospectRole} prospect. Your task is: "${task}".`
     : `You are a ${prospectRole} prospect. Awaiting instructions.`;
 
+  // PM is a one-shot agent (read, answer, close, exit) - uses --print mode
+  // Other agents like Miner need interactive mode for continuous work
+  const isOneShotAgent = prospectRole === 'pm';
+
   const claudeCommand = buildClaudeCommand({
     role: prospectRole,
     claimId: resolvedClaimId,
@@ -129,7 +133,7 @@ export async function prospectCommand(options: ProspectOptions): Promise<void> {
     prompt,
     paydirtBinPath: getPaydirtBinPath(),
     dangerouslySkipPermissions: true,  // Enable autonomous operation
-    print: background,  // Non-interactive mode when running in background
+    print: background && isOneShotAgent,  // Only one-shot agents use --print
   });
 
   if (dryRun) {
