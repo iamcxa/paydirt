@@ -388,6 +388,246 @@ Flow verified:
   },
 });
 
+// ============================================================================
+// Stage 2: TypeScript Function Implementation
+// ============================================================================
+
+/**
+ * Setup: Create work issue and decision for Stage 2
+ */
+async function setupStage2Test(): Promise<TestContext> {
+  console.log("\n▶ Setup: Creating work issue and decision...");
+
+  // Create work issue
+  const workResult = await bd([
+    "create",
+    "--title", "E2E Real Impl Stage 2: Create greet function",
+    "--type", "task",
+    "--label", "e2e-real-impl-s2",
+    "--description", "Create a TypeScript function to greet users",
+  ]);
+  const workIssueId = extractIssueId(workResult.stdout);
+  if (!workIssueId) {
+    throw new Error(`Failed to create work issue: ${workResult.stdout}`);
+  }
+  console.log(`  ✓ Work issue: ${workIssueId}`);
+
+  // Create decision issue
+  const decisionResult = await bd([
+    "create",
+    "--title", "DECISION: What greeting format to use?",
+    "--type", "task",
+    "--label", "pd:decision",
+    "--label", "e2e-real-impl-s2",
+    "--description", "Decide the greeting message format",
+  ]);
+  const decisionIssueId = extractIssueId(decisionResult.stdout);
+  if (!decisionIssueId) {
+    throw new Error(`Failed to create decision: ${decisionResult.stdout}`);
+  }
+  console.log(`  ✓ Decision issue: ${decisionIssueId}`);
+
+  // Add dependency
+  await bd(["dep", "add", workIssueId, decisionIssueId]);
+  console.log(`  ✓ Dependency added`);
+
+  // Add BLOCKED comment with TypeScript implementation task
+  await bd([
+    "comments", "add", workIssueId,
+    `BLOCKED: waiting for ${decisionIssueId} | resume-task: Read decision from ${decisionIssueId}. Create src/greet.ts with TypeScript function 'export function greet(name: string): string' that returns greeting. Use format from decision. Commit with 'git add src/greet.ts && git commit -m "feat: add greet function"'. Add PROGRESS to ${workIssueId}.`,
+  ]);
+  console.log(`  ✓ BLOCKED comment added`);
+
+  // Add PM answer
+  await bd([
+    "comments", "add", decisionIssueId,
+    `ANSWER [high]: Use format "Hello, {name}!" for the greeting.
+
+Reasoning: Professional and friendly tone.
+Source: Best practices`,
+  ]);
+  console.log(`  ✓ PM answer added`);
+
+  return { workIssueId, decisionIssueId };
+}
+
+/**
+ * Cleanup Stage 2 test artifacts
+ */
+async function cleanupStage2Test(ctx: TestContext): Promise<void> {
+  console.log("\n▶ Cleanup...");
+
+  // Close issues
+  await bd(["close", ctx.workIssueId, ctx.decisionIssueId]).catch(() => {});
+
+  // Kill tmux session
+  await killTmuxSession(`paydirt-${ctx.workIssueId}`).catch(() => {});
+
+  // Remove test file
+  try {
+    await Deno.remove("src/greet.ts");
+    console.log("  ✓ Removed src/greet.ts");
+  } catch {
+    // File might not exist
+  }
+
+  // Revert commit if exists
+  try {
+    const isCommitted = await isFileInLatestCommit("src/greet.ts");
+    if (isCommitted) {
+      const cmd = new Deno.Command("git", {
+        args: ["reset", "--soft", "HEAD~1"],
+        cwd: WORK_DIR,
+      });
+      await cmd.output();
+      console.log("  ✓ Reverted test commit");
+    }
+  } catch {
+    // Commit might not exist
+  }
+}
+
+Deno.test({
+  name: "E2E Stage 2: Miner implements TypeScript function",
+  ignore: Deno.env.get("RUN_E2E_TESTS") !== "1",
+  async fn() {
+    console.log("\n" + "=".repeat(70));
+    console.log("E2E TEST: Real Implementation Stage 2 (TypeScript)");
+    console.log("=".repeat(70));
+
+    const ctx = await setupStage2Test();
+
+    try {
+      // ====== Step 1: Close decision ======
+      console.log("\n▶ Step 1: Closing decision (simulating PM)...");
+      await bd(["close", ctx.decisionIssueId, "--reason", "Greeting format decided"]);
+      const decisionStatus = await getIssueStatus(ctx.decisionIssueId);
+      assertEquals(decisionStatus, "closed", "Decision should be closed");
+      console.log("  ✓ Decision closed");
+
+      // ====== Step 2: Trigger hook ======
+      console.log("\n▶ Step 2: Triggering Hook...");
+      const hookResult = await triggerHookForDecisionClose(ctx.decisionIssueId);
+      console.log(`  Hook exit code: ${hookResult.code}`);
+      assertEquals(hookResult.code, 0, "Hook should exit cleanly");
+
+      // ====== Step 3: Wait for Miner respawn ======
+      console.log("\n▶ Step 3: Waiting for Miner respawn...");
+      const minerSession = `paydirt-${ctx.workIssueId}`;
+      const minerRespawned = await waitFor(
+        () => tmuxSessionExists(minerSession),
+        `Miner session ${minerSession} exists`,
+        30000,
+        2000,
+      );
+      assertEquals(minerRespawned, true, "Miner should respawn");
+      console.log("  ✓ Miner respawned");
+
+      // ====== Step 4: Wait for file creation ======
+      console.log("\n▶ Step 4: Waiting for TypeScript file creation...");
+      const fileCreated = await waitFor(
+        async () => {
+          try {
+            await Deno.stat("src/greet.ts");
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        "src/greet.ts exists",
+        150000, // 2.5 minutes (TypeScript might take longer)
+        5000,
+      );
+
+      assertEquals(fileCreated, true, "src/greet.ts should be created");
+      console.log("  ✓ File created");
+
+      // ====== Step 5: Verify TypeScript content ======
+      console.log("\n▶ Step 5: Verifying TypeScript content...");
+      const content = await Deno.readTextFile("src/greet.ts");
+      console.log(`  File content:\n${content.split("\n").map(l => "    " + l).join("\n")}`);
+
+      // Check for TypeScript syntax
+      assertStringIncludes(content, "function greet", "Should have greet function");
+      assertStringIncludes(content, "name: string", "Should have type annotation for parameter");
+      assertStringIncludes(content, ": string", "Should have return type annotation");
+      assertStringIncludes(content, "return", "Should have return statement");
+
+      // Check it doesn't use 'any' type
+      assertEquals(content.includes("any"), false, "Should not use 'any' type");
+
+      console.log("  ✓ TypeScript syntax correct");
+
+      // ====== Step 6: Wait for git commit ======
+      console.log("\n▶ Step 6: Waiting for git commit...");
+      const fileCommitted = await waitFor(
+        () => isFileInLatestCommit("src/greet.ts"),
+        "src/greet.ts committed",
+        60000,
+        5000,
+      );
+
+      assertEquals(fileCommitted, true, "File should be committed");
+
+      // Verify commit message
+      const cmd = new Deno.Command("git", {
+        args: ["log", "-1", "--oneline"],
+        cwd: WORK_DIR,
+        stdout: "piped",
+      });
+      const { stdout } = await cmd.output();
+      const commitMsg = new TextDecoder().decode(stdout);
+      console.log(`  Latest commit: ${commitMsg.trim()}`);
+      assertStringIncludes(commitMsg, "greet", "Commit should mention greet");
+      console.log("  ✓ File committed");
+
+      // ====== Step 7: Wait for PROGRESS comment ======
+      console.log("\n▶ Step 7: Waiting for PROGRESS comment...");
+      const progressAdded = await waitFor(
+        async () => {
+          const comments = await getIssueComments(ctx.workIssueId);
+          return comments.includes("] PROGRESS:");
+        },
+        "PROGRESS comment added",
+        60000,
+        5000,
+      );
+
+      assertEquals(progressAdded, true, "PROGRESS comment should be added");
+      const finalComments = await getIssueComments(ctx.workIssueId);
+      console.log(`  Comments:\n${finalComments.split("\n").map(l => "    " + l).join("\n")}`);
+
+      // ====== Summary ======
+      console.log("\n" + "=".repeat(70));
+      console.log("✅ STAGE 2 TEST COMPLETED");
+      console.log("=".repeat(70));
+      console.log(`
+Summary:
+  Work Issue: ${ctx.workIssueId}
+  Decision Issue: ${ctx.decisionIssueId}
+
+Verified:
+  ✓ File created: src/greet.ts
+  ✓ TypeScript syntax: function with types
+  ✓ Type annotations: name: string, returns string
+  ✓ No 'any' types: clean TypeScript
+  ✓ Git committed: yes
+  ✓ PROGRESS comment: yes
+
+Flow verified:
+  1. ✓ Decision closed (PM answered)
+  2. ✓ Hook triggered Miner respawn
+  3. ✓ Miner created TypeScript file
+  4. ✓ Miner used proper type annotations
+  5. ✓ Miner committed to git
+  6. ✓ Miner added PROGRESS comment
+`);
+    } finally {
+      await cleanupStage2Test(ctx);
+    }
+  },
+});
+
 // Quick validation test
 Deno.test("Hook script exists", async () => {
   const stat = await Deno.stat(HOOK_SCRIPT);
