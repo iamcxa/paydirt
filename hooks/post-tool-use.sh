@@ -65,10 +65,11 @@ if echo "$TOOL_INPUT" | grep -q "bd close"; then
 
       if [ -n "$BLOCKED_ISSUE" ] && [ -n "$PAYDIRT_BIN" ]; then
         # Get resume context from the blocked issue's comments
+        # bd comments format: "[user] BLOCKED: ... | resume-task: ... at YYYY-..."
         # Known limitation: resume-task extraction only works for single-line BLOCKED comments
-        # Multi-line comments will only capture the first line. Acceptable for POC.
-        RESUME_CONTEXT=$(bd comments "$BLOCKED_ISSUE" 2>/dev/null | grep "^BLOCKED:" | tail -1)
-        RESUME_TASK=$(echo "$RESUME_CONTEXT" | sed -n 's/.*resume-task:[[:space:]]*\(.*\)/\1/p')
+        RESUME_CONTEXT=$(bd comments "$BLOCKED_ISSUE" 2>/dev/null | grep "] BLOCKED:" | tail -1)
+        # Extract resume-task, stripping the " at YYYY-MM-DD" suffix
+        RESUME_TASK=$(echo "$RESUME_CONTEXT" | sed -n 's/.*resume-task:[[:space:]]*\(.*\)[[:space:]]at[[:space:]][0-9].*$/\1/p')
 
         run_cmd "$PAYDIRT_BIN" prospect miner --claim "$BLOCKED_ISSUE" --task "${RESUME_TASK:-Resume work}" --background
       fi

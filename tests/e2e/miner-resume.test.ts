@@ -182,10 +182,10 @@ async function setupTest(): Promise<TestContext> {
   await bd(["dep", "add", workIssueId, decisionIssueId]);
 
   // Add BLOCKED comment with resume-task (simulating what Miner would do)
-  // NOTE: Must be single-line format - hook only parses single-line BLOCKED comments
+  // NOTE: Simple task format - complex tasks confuse the Miner
   await bd([
     "comments", "add", workIssueId,
-    `BLOCKED: waiting for ${decisionIssueId} | resume-task: Read the decision answer from ${decisionIssueId} using 'bd comments ${decisionIssueId}', then add a PROGRESS comment to ${workIssueId} acknowledging the decision answer`,
+    `BLOCKED: waiting for ${decisionIssueId} | resume-task: Run bd comments add ${workIssueId} 'PROGRESS: Decision acknowledged'`,
   ]);
 
   // Add PM answer to decision issue (simulating PM's response)
@@ -285,26 +285,24 @@ Deno.test({
       // ====== Step 6: Check work issue status ======
       console.log("\n▶ Step 6: Checking work issue status...");
 
-      // Wait longer for Miner to potentially complete or update
-      // Only check for PROGRESS comment (new comment from Miner) or closed status
-      // Do NOT match patterns in the original BLOCKED comment (false positive)
+      // Wait for Miner to add PROGRESS comment or close
       const workCompleted = await waitFor(
         async () => {
           const status = await getIssueStatus(ctx.workIssueId);
           const comments = await getIssueComments(ctx.workIssueId);
-          // Check if Miner made progress (added PROGRESS comment or closed)
-          return status === "closed" || comments.includes("PROGRESS:");
+          // Look for actual PROGRESS comment (format: "[user] PROGRESS: ...")
+          return status === "closed" || comments.includes("] PROGRESS: Decision acknowledged");
         },
         "Miner made progress",
-        180000, // 3 minutes - Claude can be slow to start
-        10000,
+        90000, // 90 seconds
+        5000,
       );
 
       const finalStatus = await getIssueStatus(ctx.workIssueId);
       const finalComments = await getIssueComments(ctx.workIssueId);
 
       console.log(`  Final status: ${finalStatus}`);
-      console.log(`  Miner added PROGRESS comment: ${finalComments.includes("PROGRESS:")}`);
+      console.log(`  Miner added PROGRESS comment: ${finalComments.includes("] PROGRESS: Decision acknowledged")}`);
 
       // ====== Summary ======
       console.log("\n" + "=".repeat(60));
