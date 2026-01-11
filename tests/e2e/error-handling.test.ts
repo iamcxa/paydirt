@@ -85,9 +85,10 @@ async function killTmuxSession(sessionName: string): Promise<void> {
 async function spawnMiner(
   issueId: string,
   task: string,
+  model: string = "sonnet",
 ): Promise<{ code: number; stdout: string; stderr: string }> {
   const cmd = new Deno.Command(PAYDIRT_BIN, {
-    args: ["prospect", "miner", "--claim", issueId, "--task", task, "--background"],
+    args: ["prospect", "miner", "--claim", issueId, "--task", task, "--background", "--model", model],
     cwd: WORK_DIR,
     stdout: "piped",
     stderr: "piped",

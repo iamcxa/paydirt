@@ -186,13 +186,14 @@ async function triggerHookForDecision(
 /**
  * Spawn Miner with ambiguous task
  */
-async function spawnMiner(workIssueId: string, task: string): Promise<boolean> {
+async function spawnMiner(workIssueId: string, task: string, model: string = "sonnet"): Promise<boolean> {
   const cmd = new Deno.Command(PAYDIRT_BIN, {
     args: [
       "prospect", "miner",
       "--claim", workIssueId,
       "--task", task,
       "--background",
+      "--model", model,
     ],
     cwd: WORK_DIR,
     stdout: "piped",

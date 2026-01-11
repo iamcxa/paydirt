@@ -9,6 +9,7 @@ export interface ProspectOptions {
   claimId?: string;
   dryRun?: boolean;
   background?: boolean;
+  model?: string;  // Model to use (e.g., 'sonnet', 'opus', 'haiku')
 }
 
 const VALID_ROLES: ProspectRole[] = [
@@ -90,7 +91,7 @@ async function createTmuxSession(
 }
 
 export async function prospectCommand(options: ProspectOptions): Promise<void> {
-  const { role, task, claimId, dryRun, background } = options;
+  const { role, task, claimId, dryRun, background, model } = options;
 
   // Validate role
   if (!VALID_ROLES.includes(role as ProspectRole)) {
@@ -134,6 +135,7 @@ export async function prospectCommand(options: ProspectOptions): Promise<void> {
     paydirtBinPath: getPaydirtBinPath(),
     dangerouslySkipPermissions: true,  // Enable autonomous operation
     print: background && isOneShotAgent,  // Only one-shot agents use --print
+    model,  // Model to use (e.g., 'sonnet', 'opus', 'haiku')
   });
 
   if (dryRun) {

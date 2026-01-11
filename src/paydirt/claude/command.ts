@@ -56,6 +56,7 @@ export interface ClaudeCommandOptions {
   resume?: boolean;
   dangerouslySkipPermissions?: boolean;
   print?: boolean;  // Non-interactive mode (output and exit)
+  model?: string;  // Model to use (e.g., 'sonnet', 'opus', 'haiku')
   extraArgs?: string[];
 }
 
@@ -74,6 +75,7 @@ export function buildClaudeCommand(options: ClaudeCommandOptions): string {
     resume,
     dangerouslySkipPermissions,
     print,
+    model,
     extraArgs = [],
   } = options;
 
@@ -122,7 +124,12 @@ export function buildClaudeCommand(options: ClaudeCommandOptions): string {
     args.push('--print');
   }
 
-  // 8. Extra args
+  // 8. Model specification (e.g., 'sonnet', 'opus', 'haiku')
+  if (model) {
+    args.push('--model', model);
+  }
+
+  // 9. Extra args
   args.push(...extraArgs);
 
   // Build full command with env vars and cd to project dir
@@ -133,7 +140,7 @@ export function buildClaudeCommand(options: ClaudeCommandOptions): string {
     // Use subshell to ensure proper piping: cd && (echo | command)
     command = `cd ${shellEscape(userProjectDir)} && echo ${shellEscape(prompt)} | ${envString} ${args.join(' ')}`;
   } else {
-    // 9. Prompt as last argument (for interactive mode)
+    // 10. Prompt as last argument (for interactive mode)
     if (prompt) {
       args.push(shellEscape(prompt));
     }

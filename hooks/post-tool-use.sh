@@ -40,7 +40,9 @@ if echo "$TOOL_INPUT" | grep -qE "bd create.*--label[= ].*pd:decision"; then
   DECISION_ID=$(echo "$TOOL_OUTPUT" | sed -n 's/.*Created issue:[[:space:]]*\([^[:space:]]*\).*/\1/p' | head -1)
 
   if [ -n "$DECISION_ID" ] && [ -n "$PAYDIRT_BIN" ]; then
-    run_cmd "$PAYDIRT_BIN" prospect pm --claim "$DECISION_ID" --background --task "Answer decision issue $DECISION_ID"
+    # Use PAYDIRT_MODEL env var if set, otherwise default to sonnet
+    PAYDIRT_MODEL="${PAYDIRT_MODEL:-sonnet}"
+    run_cmd "$PAYDIRT_BIN" prospect pm --claim "$DECISION_ID" --background --task "Answer decision issue $DECISION_ID" --model "$PAYDIRT_MODEL"
   fi
 fi
 
@@ -71,7 +73,9 @@ if echo "$TOOL_INPUT" | grep -q "bd close"; then
         # Extract resume-task, stripping the " at YYYY-MM-DD" suffix
         RESUME_TASK=$(echo "$RESUME_CONTEXT" | sed -n 's/.*resume-task:[[:space:]]*\(.*\)[[:space:]]at[[:space:]][0-9].*$/\1/p')
 
-        run_cmd "$PAYDIRT_BIN" prospect miner --claim "$BLOCKED_ISSUE" --task "${RESUME_TASK:-Resume work}" --background
+        # Use PAYDIRT_MODEL env var if set, otherwise default to sonnet
+        PAYDIRT_MODEL="${PAYDIRT_MODEL:-sonnet}"
+        run_cmd "$PAYDIRT_BIN" prospect miner --claim "$BLOCKED_ISSUE" --task "${RESUME_TASK:-Resume work}" --background --model "$PAYDIRT_MODEL"
       fi
     fi
   fi
