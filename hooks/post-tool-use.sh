@@ -60,8 +60,8 @@ if echo "$TOOL_INPUT" | grep -q "bd close"; then
     HAS_DECISION_LABEL=$(echo "$ISSUE_JSON" | jq -r '.[0].labels // [] | any(. == "pd:decision")' 2>/dev/null)
     if [ "$HAS_DECISION_LABEL" = "true" ]; then
       # Get the first dependent (the blocked work issue)
-      # Note: bd show --json returns array format, so use .[0]
-      BLOCKED_ISSUE=$(echo "$ISSUE_JSON" | jq -r '.[0].dependents[0] // empty' 2>/dev/null)
+      # Note: bd show --json returns array format with dependents as objects, so extract .id
+      BLOCKED_ISSUE=$(echo "$ISSUE_JSON" | jq -r '.[0].dependents[0].id // empty' 2>/dev/null)
 
       if [ -n "$BLOCKED_ISSUE" ] && [ -n "$PAYDIRT_BIN" ]; then
         # Get resume context from the blocked issue's comments
