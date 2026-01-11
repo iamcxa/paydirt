@@ -400,14 +400,46 @@ print: background && isOneShotAgent,
 
 ## 🎯 下一步驗證建議
 
-### P1: 真實實作任務
+### P1: 真實實作任務 ✅
 
 驗證 Miner 不只是加 comment，而是真的寫 code 並 commit
 
+#### Stage 1: 純文字檔案 (已完成)
+
+**測試檔案**：`tests/e2e/real-implementation.test.ts`
+
 **測試設計**：
 ```typescript
-resume-task: "Create src/hello.ts with function sayHello() that returns 'Hello World'"
-驗證: file exists + content correct + git commit exists
+resume-task: "Create src/hello.txt with 'Hello from Miner'. Git commit."
+驗證: file exists + content correct + git commit + PROGRESS comment
+```
+
+**執行結果** (2026-01-11)：
+- ✅ 檔案創建：50s
+- ✅ 內容正確：`"Hello from Miner"`
+- ✅ Git Commit：`7a36a7d test: add hello.txt`
+- ✅ PROGRESS Comment：包含 commit hash
+- ⏱️ 總時間：1m5s
+
+**關鍵發現**：
+```
+PROGRESS: Successfully created src/hello.txt with greeting
+'Hello from Miner' and committed changes (commit 7a36a7d)
+```
+
+Miner 不僅執行命令，還**理解任務**並智能報告：
+- 引用 decision 內容（"Hello from Miner"）
+- 提取並報告 commit hash
+- 用完整句子總結成果
+
+**下一步**：Stage 2 - TypeScript 函數實作
+
+#### Stage 2: TypeScript 函數 (待驗證)
+
+**測試設計**：
+```typescript
+resume-task: "Create src/greet.ts with function greet(name: string): string"
+驗證: file exists + TypeScript syntax + type annotations + git commit
 ```
 
 ### P2: Context Exhaustion
@@ -459,20 +491,23 @@ paydirt/
 ├── tests/e2e/
 │   ├── full-chain.test.ts            # 完整鏈路測試
 │   ├── miner-resume.test.ts          # Resume 測試
-│   └── multi-round-decision.test.ts  # 多輪循環測試
+│   ├── multi-round-decision.test.ts  # 多輪循環測試
+│   └── real-implementation.test.ts   # P1 真實實作測試
 └── docs/
     └── poc-camp-boss-pm.md           # 本文件
 ```
 
 ### 關鍵 Commits
 
-- `a7d86c6` - test(e2e): add Miner resume E2E test proving full decision flow
-- `7aa3cca` - test(e2e): add full chain E2E test proving POC concept
-- `705e1af` - test(e2e): add multi-round decision cycle test
 - `6d65a63` - fix(pm): enable autonomous PM agent execution in tmux background
+- `7aa3cca` - test(e2e): add full chain E2E test proving POC concept
+- `a7d86c6` - test(e2e): add Miner resume E2E test proving full decision flow
+- `705e1af` - test(e2e): add multi-round decision cycle test
+- `54d4ada` - docs: add Camp Boss PM POC verification report
+- `1d24ed8` - test(e2e): add P1 real implementation test (Stage 1)
 
 ---
 
-**文件版本**：1.0
-**最後更新**：2026-01-11
+**文件版本**：1.1
+**最後更新**：2026-01-11 (P1 Stage 1 完成)
 **維護者**：Paydirt Team
