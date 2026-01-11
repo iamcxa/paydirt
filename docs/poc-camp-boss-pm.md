@@ -542,16 +542,80 @@ PROGRESS: Task 2 done after respawn
 
 **結論**：P2 驗證**Context exhaustion 可應對** ✅
 
-### P3: 錯誤處理
+### P3: 錯誤處理 ✅
 
-驗證 PM 無法回答、decision 格式錯誤等異常情況
+驗證系統在異常情況下的穩定性與錯誤處理能力
+
+**測試檔案**：`tests/e2e/error-handling.test.ts`
+
+**執行結果** (2026-01-11)：
+- ✅ Scenario 1 完成：35s
+- ✅ Scenario 2 完成：41s
+- ✅ Scenario 3 完成：43s
+- ⏱️ 總時間：2m0s
+
+#### Scenario 1: PM 無法決策 (UNABLE_TO_DECIDE)
 
 **測試設計**：
-```typescript
-場景 1: PM 回答 "UNABLE_TO_DECIDE"
-場景 2: Decision 沒有足夠資訊
-驗證: Miner 正確處理並回報
 ```
+PM Answer: UNABLE_TO_DECIDE - Insufficient context to make a decision
+Expected: Miner 使用 fallback 策略並報告
+```
+
+**執行結果**：
+```
+Work issue comments:
+[kent] PROGRESS: PM could not decide, using fallback: option A
+```
+
+**關鍵發現**：
+- Miner **正確識別** PM 無法決策的回應
+- Miner **主動採用 fallback** 策略
+- 錯誤報告**清晰明確**
+
+#### Scenario 2: PM 回答缺少 Priority 格式
+
+**測試設計**：
+```
+PM Answer: "Use content X" (沒有 [high]/[medium]/[low] 標記)
+Expected: Miner 容錯並正常完成任務
+```
+
+**執行結果**：
+```
+Work issue comments:
+[kent] PROGRESS: Created test-p3-s2.txt
+
+File created:
+src/test-p3-s2.txt ✓
+Git commit: test(p3): scenario 2 ✓
+```
+
+**關鍵發現**：
+- Miner **容錯能力強**，不因格式錯誤而中斷
+- **正常完成任務**（創建檔案、commit、comment）
+- 不需要完美格式即可運作
+
+#### Scenario 3: Resume Task 執行失敗
+
+**測試設計**：
+```
+Resume Task: cat /nonexistent/invalid/path/file.txt (故意錯誤)
+Expected: Miner 正確報告執行錯誤
+```
+
+**執行結果**：
+```
+Work issue comments:
+[kent] ERROR: Command failed - file not found
+```
+
+**關鍵發現**：
+- Miner **正確捕獲執行錯誤**
+- 錯誤訊息**簡潔準確** ("file not found")
+- 使用 **ERROR:** 標記明確區分成功/失敗
+
+**結論**：P3 驗證**錯誤處理機制健全** ✅
 
 ### P4: 多 Agent 協作
 
@@ -583,7 +647,8 @@ paydirt/
 │   ├── miner-resume.test.ts          # Resume 測試
 │   ├── multi-round-decision.test.ts  # 多輪循環測試
 │   ├── real-implementation.test.ts   # P1 真實實作測試
-│   └── context-exhaustion.test.ts    # P2 Context exhaustion 測試
+│   ├── context-exhaustion.test.ts    # P2 Context exhaustion 測試
+│   └── error-handling.test.ts        # P3 錯誤處理測試
 └── docs/
     └── poc-camp-boss-pm.md           # 本文件
 ```
@@ -596,9 +661,10 @@ paydirt/
 - `705e1af` - test(e2e): add multi-round decision cycle test
 - `54d4ada` - docs: add Camp Boss PM POC verification report
 - `1d24ed8` - test(e2e): add P1 real implementation test (Stage 1)
+- `0377be5` - test(e2e): add P2 context exhaustion and recovery test
 
 ---
 
-**文件版本**：1.2
-**最後更新**：2026-01-11 (P1 完成：Stage 1 + Stage 2)
+**文件版本**：1.3
+**最後更新**：2026-01-12 (P3 完成：錯誤處理驗證)
 **維護者**：Paydirt Team
